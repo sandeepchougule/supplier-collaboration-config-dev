@@ -1,0 +1,63 @@
+spring:
+  profiles:
+    active: development
+---
+server:
+  port: 8085
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/xml,application/json
+feign:
+  compression:
+    min-request-size: 1024
+    mime-types: application/xml,application/json
+
+spring:
+  profiles: development
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    org.springframework: INFO
+    com.jci: DEBUG  
+---
+spring:
+  profiles: cloud
+server:
+  port: 8085
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/xml,application/json
+feign:
+  compression:
+    min-request-size: 1024
+    mime-types: application/xml,application/json
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://sc-eureka-server.azurewebsites.net/eureka/
+---
+# item-service instance when used on Docker
+spring:
+  profiles: docker
+eureka:
+# Register our microservices to Eureka using hostnames in a Docker environment will not work, they will all get 
+# one and the same hostname. Instead we configure them to use its IP address during registration with Eureka.
+  instance:
+    preferIpAddress: true
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.59.103:8761/eureka/
+
+
+# Define the port where the API gateway server would be running. This could always be port 8080
+# since each docker container has it's own IP
+server:
+  port: 8080

@@ -1,0 +1,131 @@
+spring:
+  profiles:
+    active: development
+---
+# Datasource and JPA configuration to be used for using the same tokenstore as the authorization server for
+# the defined resource server. Note that there can't be 2 different root nodes, so datasource falls under the "spring" node.
+spring:
+  profiles: development
+
+# Define the port where the API gateway server would be running
+server:
+  port: 8765 
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/xml,application/json
+feign:
+  compression:
+    min-request-size: 1024
+    mime-types: application/xml,application/json
+
+# Define the routes which determine what URL are serviced by what applications.
+# The application/services are defined in the bootstrap.yml file of individual applications
+# using the spring.application.name property.
+
+zuul:
+  routes:
+    job-service: /api/job/**
+    flatfile-service: /api/flatfile/**
+    po-service: /api/po/**
+    item-service: /api/item/**
+    supplier-service: /api/supplier/**
+    web-portal: /**
+  host:
+    connect-timeout-millis: 1000000
+    socket-timeout-millis: 6000000
+
+hystrix: 
+  command.default.execution.isolation.strategy: THREAD
+  command.default.execution.isolation.thread.timeoutInMilliseconds: 600000
+  command.default.execution.timeout.enabled: false
+  command.default.fallback.enabled: false
+  threadpool.default.coreSize: 20
+  # Increase the Hystrix timeout to 60s (per service)
+  #po-service.execution.isolation.thread.timeoutInMilliseconds: 60000
+po-service:
+  ribbon:
+    ReadTimeout: 600000
+    ConnectTimeout: 600000
+job-service:
+  ribbon:
+    ReadTimeout: 600000
+    ConnectTimeout: 600000
+
+
+
+# Define the Eureka server that handles service registration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+---
+
+# Datasource and JPA configuration to be used for using the same tokenstore as the authorization server for
+# the defined resource server. Note that there can't be 2 different root nodes, so datasource falls under the "spring" node.
+spring:
+  profiles: cloud
+
+# Define the port where the API gateway server would be running
+server:
+  port: 8765
+
+
+# Define the routes which determine what URL are serviced by what applications.
+# The application/services are defined in the bootstrap.yml file of individual applications
+# using the spring.application.name property.
+
+# Note that we don't proxy the calls to the authorization server. The reason being that 
+# Spring cloud security would need to secure the api gateway before it can route the 
+# requests using zuul
+zuul:
+  routes:
+    po-job: /api/job/**  
+    asn-service: /api/asn/**
+    po-service: /api/po/**
+    web-portal: /**
+  host:
+    connect-timeout-millis: 1000000
+    socket-timeout-millis: 6000000
+
+hystrix: 
+  command.default.execution.isolation.strategy: THREAD
+  command.default.execution.isolation.thread.timeoutInMilliseconds: 600000
+  command.default.execution.timeout.enabled: false
+  command.default.fallback.enabled: false
+  threadpool.default.coreSize: 20
+  # Increase the Hystrix timeout to 60s (per service)
+  #po-service.execution.isolation.thread.timeoutInMilliseconds: 60000
+po-service:
+  ribbon:
+    ReadTimeout: 600000
+    ConnectTimeout: 600000
+po-job:
+  ribbon:
+    ReadTimeout: 600000
+    ConnectTimeout: 600000 
+
+# Define the Eureka server that handles service registration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://sc-eureka-server.azurewebsites.net/eureka/
+
+---
+spring:
+  profiles: docker
+eureka:
+# Register our microservices to Eureka using hostnames in a Docker environment will not work, they will all get 
+# one and the same hostname. Instead we configure them to use its IP address during registration with Eureka.
+  instance:
+    preferIpAddress: true
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.59.103:8761/eureka/
+
+
+# Define the port where the API gateway server would be running. This could always be port 8080
+# since each docker container has it's own IP
+server:
+  port: 8080

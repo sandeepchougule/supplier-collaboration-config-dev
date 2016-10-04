@@ -1,0 +1,30 @@
+spring:
+  profiles:
+    active: development
+---
+spring:
+  profiles: development
+server:
+  port: 8082
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+feign:
+  histrix:
+    enabled: true
+  compression:
+    min-request-size: 1024
+    mime-types: application/xml,application/json
+
+---
+spring:
+  profiles: cloud
+server:
+  port: 8082
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
